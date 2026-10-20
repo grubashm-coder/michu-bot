@@ -32,7 +32,7 @@ function parse(msg) {
 }
 
 // ---- Autotest parsera przy starcie (widać go w logach) ----
-const BOT_VERSION = "6-ruletka";
+const BOT_VERSION = "7-bez-historii";
 const SAMPLES = [
   ["imisstherage41 went all in and won 20 Punkty PogChamp they now have 40 Punkty", "imisstherage41", 20],
   ["PogChamp Furemen_ went all in and won 48160 Punkty PogChamp they now have 96320 Punkty", "Furemen_", 48160],
@@ -75,28 +75,6 @@ function record(r) {
   queue.push(r);
   flush();
 }
-
-// ---- Zamykanie dnia: zapis podsumowania do daily_summaries ----
-const warsawDay = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Warsaw" }).format(new Date());
-let lastDay = null;
-async function closeDays() {
-  const d = warsawDay();
-  if (d === lastDay) return;
-  try {
-    const res = await fetch(SUPABASE_URL + "/rest/v1/rpc/summarize_missing_days", {
-      method: "POST",
-      headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
-      body: "{}",
-    });
-    if (!res.ok) throw new Error(res.status + " " + (await res.text()));
-    console.log("Zapisano podsumowania zakończonych dni:", await res.text());
-    lastDay = d;
-  } catch (e) {
-    console.error("Błąd zapisu podsumowania dnia, spróbuję za minutę:", e.message);
-  }
-}
-setTimeout(closeDays, 5000);
-setInterval(closeDays, 60000);
 
 // ---- Twitch IRC (anonimowo) ----
 function connect() {
