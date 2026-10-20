@@ -15,10 +15,12 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 
 function parse(msg) {
   msg = msg.replace(/\u0001ACTION |\u0001/g, "").trim();
+  // Nick to słowo tuż przed "won"/"lost"; przed nim może stać emotka (np. "PogChamp nick went all in...")
   let m;
-  if ((m = msg.match(/^@?(\S+) won (\d+) Punkty in roulette/i))) return { username: m[1], amount: +m[2], game: "roulette" };
-  if ((m = msg.match(/^@?(\S+) lost (\d+) Punkty in roulette/i))) return { username: m[1], amount: -m[2], game: "roulette" };
-  if ((m = msg.match(/^@?(\S+) went all in and lost every single one of their (\d+) Punkty/i))) return { username: m[1], amount: -m[2], game: "roulette" };
+  if ((m = msg.match(/(\S+) went all in and won (\d+) Punkty/i))) return { username: m[1].replace(/^@/, ""), amount: +m[2], game: "roulette" };
+  if ((m = msg.match(/(\S+) went all in and lost every single one of their (\d+) Punkty/i))) return { username: m[1].replace(/^@/, ""), amount: -m[2], game: "roulette" };
+  if ((m = msg.match(/(\S+) won (\d+) Punkty in roulette/i))) return { username: m[1].replace(/^@/, ""), amount: +m[2], game: "roulette" };
+  if ((m = msg.match(/(\S+) lost (\d+) Punkty in roulette/i))) return { username: m[1].replace(/^@/, ""), amount: -m[2], game: "roulette" };
   if ((m = msg.match(/^@?(\S+),? you got .*?(WYGRAŁEŚ|PRZEGRAŁEŚ)\s+(\d+)\s+Punkty/i)))
     return { username: m[1], amount: m[2].toUpperCase() === "WYGRAŁEŚ" ? +m[3] : -m[3], game: "slots" };
   return null;
