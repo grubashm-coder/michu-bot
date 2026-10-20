@@ -14,7 +14,12 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 }
 
 function parse(msg) {
-  msg = msg.replace(/\u0001ACTION |\u0001/g, "").trim();
+  // Zamień znaki sterujące i niewidzialne (np. znaczniki Twitcha, twarde spacje) na zwykłe spacje
+  msg = msg
+    .replace(/[\u0000-\u001f\u007f-\u00a0\u200b-\u200f\u2028-\u202f\u2060-\u206f\u3000\ufeff]|[\u{e0000}-\u{e007f}]/gu, " ")
+    .replace(/\s+/g, " ")
+    .replace(/^ACTION /, "")
+    .trim();
   // Nick to słowo tuż przed "won"/"lost"; przed nim może stać emotka (np. "PogChamp nick went all in...")
   let m;
   if ((m = msg.match(/(\S+) went all in and won (\d+) Punkty/i))) return { username: m[1].replace(/^@/, ""), amount: +m[2], game: "roulette" };
@@ -70,6 +75,10 @@ function connect() {
       if (!m || m[1].toLowerCase() !== BOT) return;
       const r = parse(m[2]);
       if (r) record(r);
+      else if (/Punkty/i.test(m[2])) {
+        const vis = m[2].replace(/[\u0000-\u001f\u007f-\u00a0\u200b-\u200f\u2028-\u202f\u2060-\u206f\u3000\ufeff]|[\u{e0000}-\u{e007f}]/gu, (c) => "<U+" + c.codePointAt(0).toString(16) + ">");
+        console.log("NIEROZPOZNANA wiadomość StreamElements:", vis);
+      }
     });
   });
   ws.on("close", () => { console.log("Rozłączono, ponawiam za 3 s"); setTimeout(connect, 3000); });
