@@ -18,8 +18,8 @@ function parse(msg) {
   msg = msg
     .replace(/[\u0000-\u001f\u007f-\u00a0\u200b-\u200f\u2028-\u202f\u2060-\u206f\u3000\ufeff]|[\u{e0000}-\u{e007f}]/gu, " ")
     .replace(/\s+/g, " ")
-    .replace(/^ACTION /, "")
-    .trim();
+    .trim()
+    .replace(/^ACTION /, "");
   // Nick to słowo tuż przed "won"/"lost"; przed nim może stać emotka (np. "PogChamp nick went all in...")
   let m;
   if ((m = msg.match(/(\S+) went all in and won (\d+) Punkty/i))) return { username: m[1].replace(/^@/, ""), amount: +m[2], game: "roulette" };
@@ -32,7 +32,7 @@ function parse(msg) {
 }
 
 // ---- Autotest parsera przy starcie (widać go w logach) ----
-const BOT_VERSION = "7-bez-historii";
+const BOT_VERSION = "9-action-fix";
 const SAMPLES = [
   ["imisstherage41 went all in and won 20 Punkty PogChamp they now have 40 Punkty", "imisstherage41", 20],
   ["PogChamp Furemen_ went all in and won 48160 Punkty PogChamp they now have 96320 Punkty", "Furemen_", 48160],
@@ -43,6 +43,9 @@ const SAMPLES = [
   ["wo1tas_ lost 5000 Punkty in roulette and now has 200668 Punkty! FeelsBadMan", "wo1tas_", -5000],
   ["@oliwierfishy you got aha41 | aha41 | aha41 WYGRAŁEŚ 27500 Punkty jestjestjest", "oliwierfishy", 27500],
   ["@oliwierfishy you got aha | ahahepi | aha PRZEGRAŁEŚ 1000 Punkty jasperXD", "oliwierfishy", -1000],
+  ["@Czyku_PL you got sad | sad | sad WYGRAŁEŚ 55000 Punkty jestjestjest", "Czyku_PL", 55000],
+  ["@kemizq you got sad | ahahepi | sad PRZEGRAŁEŚ 1000 Punkty jasperXD", "kemizq", -1000],
+  ["\u0001ACTION @kemizq you got ahahepi | aha33 | sad PRZEGRAŁEŚ 3627 Punkty jasperXD\u0001", "kemizq", -3627],
 ];
 const testOk = SAMPLES.every(([t, u, a]) => { const r = parse(t); return r && r.username === u && r.amount === a; });
 console.log("Wersja bota:", BOT_VERSION, "| autotest parsera:", testOk ? "OK" : "BŁĄD");
