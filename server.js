@@ -32,11 +32,17 @@ function parse(msg) {
 }
 
 // ---- Autotest parsera przy starcie (widać go w logach) ----
-const BOT_VERSION = "5-allin-fix";
+const BOT_VERSION = "6-ruletka";
 const SAMPLES = [
   ["imisstherage41 went all in and won 20 Punkty PogChamp they now have 40 Punkty", "imisstherage41", 20],
   ["PogChamp Furemen_ went all in and won 48160 Punkty PogChamp they now have 96320 Punkty", "Furemen_", 48160],
   ["Furemen_ went all in and lost every single one of their 96560 Punkty LUL", "Furemen_", -96560],
+  ["19dawid06ctsk went all in and won 10000 Punkty PogChamp they now have 20000 Punkty", "19dawid06ctsk", 10000],
+  ["19dawid06ctsk went all in and lost every single one of their 240 Punkty LUL", "19dawid06ctsk", -240],
+  ["MrKribek won 10000 Punkty in roulette and now has 816136 Punkty! FeelsGoodMan", "MrKribek", 10000],
+  ["wo1tas_ lost 5000 Punkty in roulette and now has 200668 Punkty! FeelsBadMan", "wo1tas_", -5000],
+  ["@oliwierfishy you got aha41 | aha41 | aha41 WYGRAŁEŚ 27500 Punkty jestjestjest", "oliwierfishy", 27500],
+  ["@oliwierfishy you got aha | ahahepi | aha PRZEGRAŁEŚ 1000 Punkty jasperXD", "oliwierfishy", -1000],
 ];
 const testOk = SAMPLES.every(([t, u, a]) => { const r = parse(t); return r && r.username === u && r.amount === a; });
 console.log("Wersja bota:", BOT_VERSION, "| autotest parsera:", testOk ? "OK" : "BŁĄD");
