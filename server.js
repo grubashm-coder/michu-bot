@@ -31,6 +31,16 @@ function parse(msg) {
   return null;
 }
 
+// ---- Autotest parsera przy starcie (widać go w logach) ----
+const BOT_VERSION = "5-allin-fix";
+const SAMPLES = [
+  ["imisstherage41 went all in and won 20 Punkty PogChamp they now have 40 Punkty", "imisstherage41", 20],
+  ["PogChamp Furemen_ went all in and won 48160 Punkty PogChamp they now have 96320 Punkty", "Furemen_", 48160],
+  ["Furemen_ went all in and lost every single one of their 96560 Punkty LUL", "Furemen_", -96560],
+];
+const testOk = SAMPLES.every(([t, u, a]) => { const r = parse(t); return r && r.username === u && r.amount === a; });
+console.log("Wersja bota:", BOT_VERSION, "| autotest parsera:", testOk ? "OK" : "BŁĄD");
+
 // ---- Zapis do Supabase (kolejka z ponawianiem) ----
 const queue = [];
 let sending = false;
@@ -60,6 +70,28 @@ function record(r) {
   flush();
 }
 
+// ---- Zamykanie dnia: zapis podsumowania do daily_summaries ----
+const warsawDay = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Warsaw" }).format(new Date());
+let lastDay = null;
+async function closeDays() {
+  const d = warsawDay();
+  if (d === lastDay) return;
+  try {
+    const res = await fetch(SUPABASE_URL + "/rest/v1/rpc/summarize_missing_days", {
+      method: "POST",
+      headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+      body: "{}",
+    });
+    if (!res.ok) throw new Error(res.status + " " + (await res.text()));
+    console.log("Zapisano podsumowania zakończonych dni:", await res.text());
+    lastDay = d;
+  } catch (e) {
+    console.error("Błąd zapisu podsumowania dnia, spróbuję za minutę:", e.message);
+  }
+}
+setTimeout(closeDays, 5000);
+setInterval(closeDays, 60000);
+
 // ---- Twitch IRC (anonimowo) ----
 function connect() {
   const ws = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
@@ -73,6 +105,7 @@ function connect() {
       if (line.startsWith("PING")) return ws.send("PONG :tmi.twitch.tv");
       const m = line.match(/^:(\w+)!\S+ PRIVMSG #\S+ :(.*)$/);
       if (!m || m[1].toLowerCase() !== BOT) return;
+      if (process.env.DEBUG_ALL) console.log("SE:", m[2]);
       const r = parse(m[2]);
       if (r) record(r);
       else if (/Punkty/i.test(m[2])) {
